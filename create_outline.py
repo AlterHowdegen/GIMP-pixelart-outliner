@@ -4,7 +4,7 @@
 from gimpfu import *
 import math
 
-def create_outline(image, fillOpacity, allLayers):
+def create_outline(image, fillOpacity, allLayers, cutOutCenter):
 
     xOffsets = [1, -1, 0, 0]
     yOffsets = [0, 0, 1, -1]
@@ -34,20 +34,25 @@ def create_outline(image, fillOpacity, allLayers):
             newLayer = image.active_layer
             layers.append(newLayer)
 
-            # pdb.gimp_selection_translate(image, xOffsets[i], yOffsets[i])
-
             pdb.gimp_layer_translate (newLayer, xOffsets[i], yOffsets[i]);
             pdb.gimp_selection_layer_alpha(newLayer)
 
             pdb.gimp_bucket_fill(newLayer, FG_BUCKET_FILL, NORMAL_MODE, fillOpacity, 0, TRUE, 0, 0)
-
-            # newLayer.translate(xOffsets[i], yOffsets[i])
 
         for i in range(len(layers) - 1):
             j = (len(layers) - 2) - i
             pdb.gimp_image_merge_down(image, layers[j], EXPAND_AS_NECESSARY)
 
         pdb.gimp_image_lower_layer(image, image.active_layer)
+
+        newLayer = image.active_layer
+
+        if(cutOutCenter):
+            pdb.gimp_image_set_active_layer(image, originalLayers[k])
+            pdb.gimp_selection_layer_alpha(originalLayers[k])
+            pdb.gimp_image_set_active_layer(image, newLayer)
+            pdb.gimp_edit_cut(newLayer)
+
         image.active_layer.name = originalLayers[k].name + " Outline"
 
     pdb.gimp_selection_none(image)
@@ -64,7 +69,8 @@ register(
     [
         (PF_IMAGE, 'image', 'Input image:', None),
         (PF_FLOAT, 'fillOpacity', 'Fill opacity:', 100),
-        (PF_BOOL, 'allLayers', 'All layers:', False)
+        (PF_BOOL, 'allLayers', 'All layers:', False),
+        (PF_BOOL, 'cutOutCenter', 'Cut out center:', False)
     ],
     [],
     create_outline, menu="<Image>/Filters/Pixelart/")
