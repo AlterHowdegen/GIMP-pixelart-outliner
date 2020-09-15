@@ -4,7 +4,7 @@
 from gimpfu import *
 import math
 
-def create_outline(image):
+def create_outline(image, fillOpacity):
 
     xOffsets = [1, -1, 0, 0]
     yOffsets = [0, 0, 1, -1]
@@ -24,9 +24,12 @@ def create_outline(image):
         newLayer = image.active_layer
         layers.append(newLayer)
 
+        # pdb.gimp_selection_translate(image, xOffsets[i], yOffsets[i])
+
+        pdb.gimp_layer_translate (newLayer, xOffsets[i], yOffsets[i]);
         pdb.gimp_selection_layer_alpha(newLayer)
-        pdb.gimp_selection_translate(image, xOffsets[i], yOffsets[i])
-        pdb.gimp_bucket_fill(newLayer, FG_BUCKET_FILL, NORMAL_MODE, 100, 0, TRUE, 0, 0)
+
+        pdb.gimp_bucket_fill(newLayer, FG_BUCKET_FILL, NORMAL_MODE, fillOpacity, 0, TRUE, 0, 0)
 
         # newLayer.translate(xOffsets[i], yOffsets[i])
 
@@ -36,6 +39,8 @@ def create_outline(image):
 
     pdb.gimp_image_lower_layer(image, image.active_layer)
     image.active_layer.name = originalLayer.name + " Outline"
+
+    pdb.gimp_selection_none(image)
 
 register(
     "python_fu_create_outline",
@@ -47,7 +52,8 @@ register(
     "Create Pixelart Outline",
     "*",
     [
-        (PF_IMAGE, 'image', 'Input image:', None)
+        (PF_IMAGE, 'image', 'Input image:', None),
+        (PF_FLOAT, 'fillOpacity', 'Fill opacity:', 100)
     ],
     [],
     create_outline, menu="<Image>/Filters/Pixelart/")
